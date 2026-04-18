@@ -1,213 +1,135 @@
 grammar b;
 
-program
-    : topLevel* EOF
+program : ext_def+ EOF ;
+
+ext_def
+    : EXTRN name_list ';'
+    | VARIADIC '(' ID ',' expr ')' ';'
+    | ID ASM '(' string_list ')' ';'
+    | ID '(' arg_list? ')' statement
+    | ID '[' expr? ']' ival_list? ';'
+    | ID ival ';'
+    | ID ';'
     ;
 
-topLevel
-    : definition
-    | extrndecl
-    | variadicdecl
+ival : expr ;
+ival_list : ival (',' ival)* ;
+
+arg_list : ID (',' ID)* ;
+name_list : ID (',' ID)* ;
+string_list : STRING (',' STRING)* ;
+
+statement
+    : compound_stmt
+    | IF '(' expr ')' statement (ELSE statement)?
+    | WHILE '(' expr ')' statement
+    | SWITCH '(' expr ')' statement
+    | CASE expr ':' statement
+    | DEFAULT ':' statement
+    | ID ':' statement
+    | GOTO expr ';'
+    | BREAK ';'
+    | RETURN ';'
+    | RETURN '(' expr ')' ';'
+    | ASM '(' string_list ')' ';'
+    | auto_decl
+    | extrn_decl
+    | expr ';'
     | ';'
     ;
 
-definition
-    : name constant? (ival (',' ival)*)* ';'
-    | name '__asm__' '(' stringlist ')' ';'
-    | name '(' (name (',' name)*)? ')' statement
+compound_stmt : '{' statement* '}' ;
+
+auto_decl : AUTO auto_def (',' auto_def)* ';' ;
+auto_def : ID | ID '[' expr ']' ;
+
+extrn_decl : EXTRN name_list ';' ;
+
+expr
+    : expr '[' expr ']'
+    | expr '(' expr_list? ')'
+    | expr (INC | DEC)
+    | ('*' | '&' | '-' | '!' | INC | DEC | '~') expr
+    | expr ('*' | '/' | '%') expr
+    | expr ('+' | '-') expr
+    | expr (SHL | SHR) expr
+    | expr ('<' | LE | '>' | GE) expr
+    | expr (EQ | NE) expr
+    | expr '&' expr
+    | expr '^' expr
+    | expr '|' expr
+    | <assoc=right> expr '?' expr ':' expr
+    | <assoc=right> expr assign_op expr
+    | '(' expr ')'
+    | ID
+    | DECIMAL
+    | OCTAL
+    | CHAR
+    | STRING
     ;
 
-extrndecl
-    : 'extrn' name (',' name)* ';'
+expr_list : expr (',' expr)* ;
+
+assign_op
+    : ASSIGN | ASS_MUL | ASS_DIV | ASS_MOD | ASS_ADD | ASS_SUB 
+    | ASS_SHL | ASS_SHR | ASS_LT | ASS_LE | ASS_GT | ASS_GE 
+    | ASS_EQ | ASS_NE | ASS_AND | ASS_XOR | ASS_OR
     ;
 
-variadicdecl
-    : '__variadic__' '(' name ',' INT ')' ';'
-    ;
+// Keywords
+AUTO : 'auto' ;
+BREAK : 'break' ;
+CASE : 'case' ;
+DEFAULT : 'default' ;
+ELSE : 'else' ;
+EXTRN : 'extrn' ;
+GOTO : 'goto' ;
+IF : 'if' ;
+RETURN : 'return' ;
+SWITCH : 'switch' ;
+WHILE : 'while' ;
 
-ival
-    : constant
-    | name
-    ;
+ASM : '__asm__' ;
+VARIADIC : '__variadic__' ;
 
-statement
-    : externsmt
-    | autosmt
-    | name ':' statement
-    | casestmt
-    | blockstmt
-    | ifstmt
-    | whilestmt
-    | switchstmt
-    | gotostmt
-    | returnstmt
-    | asmstmt
-    | expressionstmt
-    | nullstmt
-    ;
+// Operators
+INC : '++' ;
+DEC : '--' ;
+SHL : '<<' ;
+SHR : '>>' ;
+LE  : '<=' ;
+GE  : '>=' ;
+EQ  : '==' ;
+NE  : '!=' ;
 
-nullstmt
-    : ';'
-    ;
+ASS_MUL : '=*' ;
+ASS_DIV : '=/' ;
+ASS_MOD : '=%' ;
+ASS_ADD : '=+' ;
+ASS_SUB : '=-' ;
+ASS_SHL : '=<<' ;
+ASS_SHR : '=>>' ;
+ASS_LE  : '=<=' ;
+ASS_LT  : '=<' ;
+ASS_GE  : '=>=' ;
+ASS_GT  : '=>' ;
+ASS_EQ  : '===' ;
+ASS_NE  : '=!=' ;
+ASS_AND : '=&' ;
+ASS_XOR : '=^' ;
+ASS_OR  : '=|' ;
+ASSIGN  : '=' ;
 
-expressionstmt
-    : rvalue ';'
-    ;
+ID : [a-zA-Z_.] [a-zA-Z_.0-9]* ;
 
-blockstmt
-    : '{' statement* '}'
-    ;
+DECIMAL : [1-9][0-9]* ;
+OCTAL : '0' [0-7]* ;
+CHAR : '\'' ( ESC | ~['\\] )* '\'' ;
+STRING : '"' ( ESC | ~["\\] )* '"' ;
 
-returnstmt
-    : 'return' ('(' rvalue ')')? ';'
-    ;
-
-gotostmt
-    : 'goto' rvalue ';'
-    ;
-
-switchstmt
-    : 'switch' rvalue statement
-    ;
-
-whilestmt
-    : 'while' '(' rvalue ')' statement
-    ;
-
-ifstmt
-    : 'if' '(' rvalue ')' statement ('else' statement)?
-    ;
-
-casestmt
-    : 'case' constant ':' statement
-    ;
-
-externsmt
-    : 'extrn' name (',' name)* ';'
-    ;
-
-autosmt
-    : 'auto' name constant? (',' name constant?)* ';'
-    ;
-
-asmstmt
-    : '__asm__' '(' stringlist ')' ';'
-    ;
-
-stringlist
-    : STRING1 (',' STRING1)*
-    ;
-
-rvalue
-    : expression
-    | comparison
-    | ternary
-    | assignment
-    ;
-
-ternary
-    : expression '?' rvalue ':' rvalue
-    ;
-
-comparison
-    : expression binary rvalue
-    ;
-
-assignment
-    : name assign rvalue
-    ;
-
-expression
-    : '(' rvalue ')'
-    | name
-    | constant
-    | incdec name
-    | name incdec
-    | unary rvalue
-    | '&' name
-    | functioninvocation
-    ;
-
-functioninvocation
-    : name '(' functionparameters? ')'
-    ;
-
-functionparameters
-    : rvalue (',' rvalue)*
-    ;
-
-assign
-    : '=' binary?
-    ;
-
-incdec
-    : '++'
-    | '--'
-    ;
-
-unary
-    : '-'
-    | '!'
-    ;
-
-binary
-    : '|'
-    | '&'
-    | '=='
-    | '!='
-    | '<'
-    | '<='
-    | '>'
-    | '>='
-    | '<<'
-    | '>>'
-    | '-'
-    | '+'
-    | '%'
-    | '*'
-    | '/'
-    ;
-
-lvalue
-    : name
-    | '*' rvalue
-    | rvalue '[' rvalue ']'
-    ;
-
-constant
-    : INT
-    | STRING1
-    | STRING2
-    ;
-
-name
-    : NAME
-    ;
-
-NAME
-    : [a-zA-Z_] [a-zA-Z0-9_]*
-    ;
-
-INT
-    : [0-9]+
-    ;
-
-STRING1
-    : '"' ~ ["\r\n]* '"'
-    ;
-
-STRING2
-    : '\'' ~ ['\r\n]* '\''
-    ;
-
+fragment ESC : '\\' [0e()t*'"n] ;
 LINECOMMENT
     : '//' ~[\r\n]* -> skip
     ;
-
-BLOCKCOMMENT
-    : '/*' .*? '*/' -> skip
-    ;
-
-WS
-    : [ \t\r\n]+ -> skip
-    ;
+COMMENT : '/*' .*? '*/' -> skip ;
+WS : [ \t\r\n]+ -> skip ;

@@ -27,29 +27,11 @@ func (s *BasebListener) EnterProgram(ctx *ProgramContext) {}
 // ExitProgram is called when production program is exited.
 func (s *BasebListener) ExitProgram(ctx *ProgramContext) {}
 
-// EnterTopLevel is called when production topLevel is entered.
-func (s *BasebListener) EnterTopLevel(ctx *TopLevelContext) {}
+// EnterExt_def is called when production ext_def is entered.
+func (s *BasebListener) EnterExt_def(ctx *Ext_defContext) {}
 
-// ExitTopLevel is called when production topLevel is exited.
-func (s *BasebListener) ExitTopLevel(ctx *TopLevelContext) {}
-
-// EnterDefinition is called when production definition is entered.
-func (s *BasebListener) EnterDefinition(ctx *DefinitionContext) {}
-
-// ExitDefinition is called when production definition is exited.
-func (s *BasebListener) ExitDefinition(ctx *DefinitionContext) {}
-
-// EnterExtrndecl is called when production extrndecl is entered.
-func (s *BasebListener) EnterExtrndecl(ctx *ExtrndeclContext) {}
-
-// ExitExtrndecl is called when production extrndecl is exited.
-func (s *BasebListener) ExitExtrndecl(ctx *ExtrndeclContext) {}
-
-// EnterVariadicdecl is called when production variadicdecl is entered.
-func (s *BasebListener) EnterVariadicdecl(ctx *VariadicdeclContext) {}
-
-// ExitVariadicdecl is called when production variadicdecl is exited.
-func (s *BasebListener) ExitVariadicdecl(ctx *VariadicdeclContext) {}
+// ExitExt_def is called when production ext_def is exited.
+func (s *BasebListener) ExitExt_def(ctx *Ext_defContext) {}
 
 // EnterIval is called when production ival is entered.
 func (s *BasebListener) EnterIval(ctx *IvalContext) {}
@@ -57,170 +39,74 @@ func (s *BasebListener) EnterIval(ctx *IvalContext) {}
 // ExitIval is called when production ival is exited.
 func (s *BasebListener) ExitIval(ctx *IvalContext) {}
 
+// EnterIval_list is called when production ival_list is entered.
+func (s *BasebListener) EnterIval_list(ctx *Ival_listContext) {}
+
+// ExitIval_list is called when production ival_list is exited.
+func (s *BasebListener) ExitIval_list(ctx *Ival_listContext) {}
+
+// EnterArg_list is called when production arg_list is entered.
+func (s *BasebListener) EnterArg_list(ctx *Arg_listContext) {}
+
+// ExitArg_list is called when production arg_list is exited.
+func (s *BasebListener) ExitArg_list(ctx *Arg_listContext) {}
+
+// EnterName_list is called when production name_list is entered.
+func (s *BasebListener) EnterName_list(ctx *Name_listContext) {}
+
+// ExitName_list is called when production name_list is exited.
+func (s *BasebListener) ExitName_list(ctx *Name_listContext) {}
+
+// EnterString_list is called when production string_list is entered.
+func (s *BasebListener) EnterString_list(ctx *String_listContext) {}
+
+// ExitString_list is called when production string_list is exited.
+func (s *BasebListener) ExitString_list(ctx *String_listContext) {}
+
 // EnterStatement is called when production statement is entered.
 func (s *BasebListener) EnterStatement(ctx *StatementContext) {}
 
 // ExitStatement is called when production statement is exited.
 func (s *BasebListener) ExitStatement(ctx *StatementContext) {}
 
-// EnterNullstmt is called when production nullstmt is entered.
-func (s *BasebListener) EnterNullstmt(ctx *NullstmtContext) {}
+// EnterCompound_stmt is called when production compound_stmt is entered.
+func (s *BasebListener) EnterCompound_stmt(ctx *Compound_stmtContext) {}
 
-// ExitNullstmt is called when production nullstmt is exited.
-func (s *BasebListener) ExitNullstmt(ctx *NullstmtContext) {}
+// ExitCompound_stmt is called when production compound_stmt is exited.
+func (s *BasebListener) ExitCompound_stmt(ctx *Compound_stmtContext) {}
 
-// EnterExpressionstmt is called when production expressionstmt is entered.
-func (s *BasebListener) EnterExpressionstmt(ctx *ExpressionstmtContext) {}
+// EnterAuto_decl is called when production auto_decl is entered.
+func (s *BasebListener) EnterAuto_decl(ctx *Auto_declContext) {}
 
-// ExitExpressionstmt is called when production expressionstmt is exited.
-func (s *BasebListener) ExitExpressionstmt(ctx *ExpressionstmtContext) {}
+// ExitAuto_decl is called when production auto_decl is exited.
+func (s *BasebListener) ExitAuto_decl(ctx *Auto_declContext) {}
 
-// EnterBlockstmt is called when production blockstmt is entered.
-func (s *BasebListener) EnterBlockstmt(ctx *BlockstmtContext) {}
+// EnterAuto_def is called when production auto_def is entered.
+func (s *BasebListener) EnterAuto_def(ctx *Auto_defContext) {}
 
-// ExitBlockstmt is called when production blockstmt is exited.
-func (s *BasebListener) ExitBlockstmt(ctx *BlockstmtContext) {}
+// ExitAuto_def is called when production auto_def is exited.
+func (s *BasebListener) ExitAuto_def(ctx *Auto_defContext) {}
 
-// EnterReturnstmt is called when production returnstmt is entered.
-func (s *BasebListener) EnterReturnstmt(ctx *ReturnstmtContext) {}
+// EnterExtrn_decl is called when production extrn_decl is entered.
+func (s *BasebListener) EnterExtrn_decl(ctx *Extrn_declContext) {}
 
-// ExitReturnstmt is called when production returnstmt is exited.
-func (s *BasebListener) ExitReturnstmt(ctx *ReturnstmtContext) {}
+// ExitExtrn_decl is called when production extrn_decl is exited.
+func (s *BasebListener) ExitExtrn_decl(ctx *Extrn_declContext) {}
 
-// EnterGotostmt is called when production gotostmt is entered.
-func (s *BasebListener) EnterGotostmt(ctx *GotostmtContext) {}
+// EnterExpr is called when production expr is entered.
+func (s *BasebListener) EnterExpr(ctx *ExprContext) {}
 
-// ExitGotostmt is called when production gotostmt is exited.
-func (s *BasebListener) ExitGotostmt(ctx *GotostmtContext) {}
+// ExitExpr is called when production expr is exited.
+func (s *BasebListener) ExitExpr(ctx *ExprContext) {}
 
-// EnterSwitchstmt is called when production switchstmt is entered.
-func (s *BasebListener) EnterSwitchstmt(ctx *SwitchstmtContext) {}
+// EnterExpr_list is called when production expr_list is entered.
+func (s *BasebListener) EnterExpr_list(ctx *Expr_listContext) {}
 
-// ExitSwitchstmt is called when production switchstmt is exited.
-func (s *BasebListener) ExitSwitchstmt(ctx *SwitchstmtContext) {}
+// ExitExpr_list is called when production expr_list is exited.
+func (s *BasebListener) ExitExpr_list(ctx *Expr_listContext) {}
 
-// EnterWhilestmt is called when production whilestmt is entered.
-func (s *BasebListener) EnterWhilestmt(ctx *WhilestmtContext) {}
+// EnterAssign_op is called when production assign_op is entered.
+func (s *BasebListener) EnterAssign_op(ctx *Assign_opContext) {}
 
-// ExitWhilestmt is called when production whilestmt is exited.
-func (s *BasebListener) ExitWhilestmt(ctx *WhilestmtContext) {}
-
-// EnterIfstmt is called when production ifstmt is entered.
-func (s *BasebListener) EnterIfstmt(ctx *IfstmtContext) {}
-
-// ExitIfstmt is called when production ifstmt is exited.
-func (s *BasebListener) ExitIfstmt(ctx *IfstmtContext) {}
-
-// EnterCasestmt is called when production casestmt is entered.
-func (s *BasebListener) EnterCasestmt(ctx *CasestmtContext) {}
-
-// ExitCasestmt is called when production casestmt is exited.
-func (s *BasebListener) ExitCasestmt(ctx *CasestmtContext) {}
-
-// EnterExternsmt is called when production externsmt is entered.
-func (s *BasebListener) EnterExternsmt(ctx *ExternsmtContext) {}
-
-// ExitExternsmt is called when production externsmt is exited.
-func (s *BasebListener) ExitExternsmt(ctx *ExternsmtContext) {}
-
-// EnterAutosmt is called when production autosmt is entered.
-func (s *BasebListener) EnterAutosmt(ctx *AutosmtContext) {}
-
-// ExitAutosmt is called when production autosmt is exited.
-func (s *BasebListener) ExitAutosmt(ctx *AutosmtContext) {}
-
-// EnterAsmstmt is called when production asmstmt is entered.
-func (s *BasebListener) EnterAsmstmt(ctx *AsmstmtContext) {}
-
-// ExitAsmstmt is called when production asmstmt is exited.
-func (s *BasebListener) ExitAsmstmt(ctx *AsmstmtContext) {}
-
-// EnterStringlist is called when production stringlist is entered.
-func (s *BasebListener) EnterStringlist(ctx *StringlistContext) {}
-
-// ExitStringlist is called when production stringlist is exited.
-func (s *BasebListener) ExitStringlist(ctx *StringlistContext) {}
-
-// EnterRvalue is called when production rvalue is entered.
-func (s *BasebListener) EnterRvalue(ctx *RvalueContext) {}
-
-// ExitRvalue is called when production rvalue is exited.
-func (s *BasebListener) ExitRvalue(ctx *RvalueContext) {}
-
-// EnterTernary is called when production ternary is entered.
-func (s *BasebListener) EnterTernary(ctx *TernaryContext) {}
-
-// ExitTernary is called when production ternary is exited.
-func (s *BasebListener) ExitTernary(ctx *TernaryContext) {}
-
-// EnterComparison is called when production comparison is entered.
-func (s *BasebListener) EnterComparison(ctx *ComparisonContext) {}
-
-// ExitComparison is called when production comparison is exited.
-func (s *BasebListener) ExitComparison(ctx *ComparisonContext) {}
-
-// EnterAssignment is called when production assignment is entered.
-func (s *BasebListener) EnterAssignment(ctx *AssignmentContext) {}
-
-// ExitAssignment is called when production assignment is exited.
-func (s *BasebListener) ExitAssignment(ctx *AssignmentContext) {}
-
-// EnterExpression is called when production expression is entered.
-func (s *BasebListener) EnterExpression(ctx *ExpressionContext) {}
-
-// ExitExpression is called when production expression is exited.
-func (s *BasebListener) ExitExpression(ctx *ExpressionContext) {}
-
-// EnterFunctioninvocation is called when production functioninvocation is entered.
-func (s *BasebListener) EnterFunctioninvocation(ctx *FunctioninvocationContext) {}
-
-// ExitFunctioninvocation is called when production functioninvocation is exited.
-func (s *BasebListener) ExitFunctioninvocation(ctx *FunctioninvocationContext) {}
-
-// EnterFunctionparameters is called when production functionparameters is entered.
-func (s *BasebListener) EnterFunctionparameters(ctx *FunctionparametersContext) {}
-
-// ExitFunctionparameters is called when production functionparameters is exited.
-func (s *BasebListener) ExitFunctionparameters(ctx *FunctionparametersContext) {}
-
-// EnterAssign is called when production assign is entered.
-func (s *BasebListener) EnterAssign(ctx *AssignContext) {}
-
-// ExitAssign is called when production assign is exited.
-func (s *BasebListener) ExitAssign(ctx *AssignContext) {}
-
-// EnterIncdec is called when production incdec is entered.
-func (s *BasebListener) EnterIncdec(ctx *IncdecContext) {}
-
-// ExitIncdec is called when production incdec is exited.
-func (s *BasebListener) ExitIncdec(ctx *IncdecContext) {}
-
-// EnterUnary is called when production unary is entered.
-func (s *BasebListener) EnterUnary(ctx *UnaryContext) {}
-
-// ExitUnary is called when production unary is exited.
-func (s *BasebListener) ExitUnary(ctx *UnaryContext) {}
-
-// EnterBinary is called when production binary is entered.
-func (s *BasebListener) EnterBinary(ctx *BinaryContext) {}
-
-// ExitBinary is called when production binary is exited.
-func (s *BasebListener) ExitBinary(ctx *BinaryContext) {}
-
-// EnterLvalue is called when production lvalue is entered.
-func (s *BasebListener) EnterLvalue(ctx *LvalueContext) {}
-
-// ExitLvalue is called when production lvalue is exited.
-func (s *BasebListener) ExitLvalue(ctx *LvalueContext) {}
-
-// EnterConstant is called when production constant is entered.
-func (s *BasebListener) EnterConstant(ctx *ConstantContext) {}
-
-// ExitConstant is called when production constant is exited.
-func (s *BasebListener) ExitConstant(ctx *ConstantContext) {}
-
-// EnterName is called when production name is entered.
-func (s *BasebListener) EnterName(ctx *NameContext) {}
-
-// ExitName is called when production name is exited.
-func (s *BasebListener) ExitName(ctx *NameContext) {}
+// ExitAssign_op is called when production assign_op is exited.
+func (s *BasebListener) ExitAssign_op(ctx *Assign_opContext) {}

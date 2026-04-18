@@ -17,6 +17,7 @@ main() {
     } else {
         b = a - 5;
     }
+		a: 192;
 
     while (b > 0) {
         --b;
@@ -36,6 +37,11 @@ label:
         inner = 42;
         c = inner;
     }
+		w[7];
+		a = *(w+2);
+		b = w[a];
+		a = 2;
+		w[7] = a + b;
 
     /* Testing Operators */
     c = (a << 2) | (b >> 1);
@@ -45,7 +51,7 @@ label:
     
 		if (a <= 100) if (b >= 0) { 
 			/* This is the B way to do "a && b" 
-*/	}
+	 */}
 
     /* Testing Ternary and Comparisons */
     c = (a < b) ? a : b;

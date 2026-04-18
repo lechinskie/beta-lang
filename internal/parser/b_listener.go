@@ -11,204 +11,90 @@ type bListener interface {
 	// EnterProgram is called when entering the program production.
 	EnterProgram(c *ProgramContext)
 
-	// EnterTopLevel is called when entering the topLevel production.
-	EnterTopLevel(c *TopLevelContext)
-
-	// EnterDefinition is called when entering the definition production.
-	EnterDefinition(c *DefinitionContext)
-
-	// EnterExtrndecl is called when entering the extrndecl production.
-	EnterExtrndecl(c *ExtrndeclContext)
-
-	// EnterVariadicdecl is called when entering the variadicdecl production.
-	EnterVariadicdecl(c *VariadicdeclContext)
+	// EnterExt_def is called when entering the ext_def production.
+	EnterExt_def(c *Ext_defContext)
 
 	// EnterIval is called when entering the ival production.
 	EnterIval(c *IvalContext)
 
+	// EnterIval_list is called when entering the ival_list production.
+	EnterIval_list(c *Ival_listContext)
+
+	// EnterArg_list is called when entering the arg_list production.
+	EnterArg_list(c *Arg_listContext)
+
+	// EnterName_list is called when entering the name_list production.
+	EnterName_list(c *Name_listContext)
+
+	// EnterString_list is called when entering the string_list production.
+	EnterString_list(c *String_listContext)
+
 	// EnterStatement is called when entering the statement production.
 	EnterStatement(c *StatementContext)
 
-	// EnterNullstmt is called when entering the nullstmt production.
-	EnterNullstmt(c *NullstmtContext)
+	// EnterCompound_stmt is called when entering the compound_stmt production.
+	EnterCompound_stmt(c *Compound_stmtContext)
 
-	// EnterExpressionstmt is called when entering the expressionstmt production.
-	EnterExpressionstmt(c *ExpressionstmtContext)
+	// EnterAuto_decl is called when entering the auto_decl production.
+	EnterAuto_decl(c *Auto_declContext)
 
-	// EnterBlockstmt is called when entering the blockstmt production.
-	EnterBlockstmt(c *BlockstmtContext)
+	// EnterAuto_def is called when entering the auto_def production.
+	EnterAuto_def(c *Auto_defContext)
 
-	// EnterReturnstmt is called when entering the returnstmt production.
-	EnterReturnstmt(c *ReturnstmtContext)
+	// EnterExtrn_decl is called when entering the extrn_decl production.
+	EnterExtrn_decl(c *Extrn_declContext)
 
-	// EnterGotostmt is called when entering the gotostmt production.
-	EnterGotostmt(c *GotostmtContext)
+	// EnterExpr is called when entering the expr production.
+	EnterExpr(c *ExprContext)
 
-	// EnterSwitchstmt is called when entering the switchstmt production.
-	EnterSwitchstmt(c *SwitchstmtContext)
+	// EnterExpr_list is called when entering the expr_list production.
+	EnterExpr_list(c *Expr_listContext)
 
-	// EnterWhilestmt is called when entering the whilestmt production.
-	EnterWhilestmt(c *WhilestmtContext)
-
-	// EnterIfstmt is called when entering the ifstmt production.
-	EnterIfstmt(c *IfstmtContext)
-
-	// EnterCasestmt is called when entering the casestmt production.
-	EnterCasestmt(c *CasestmtContext)
-
-	// EnterExternsmt is called when entering the externsmt production.
-	EnterExternsmt(c *ExternsmtContext)
-
-	// EnterAutosmt is called when entering the autosmt production.
-	EnterAutosmt(c *AutosmtContext)
-
-	// EnterAsmstmt is called when entering the asmstmt production.
-	EnterAsmstmt(c *AsmstmtContext)
-
-	// EnterStringlist is called when entering the stringlist production.
-	EnterStringlist(c *StringlistContext)
-
-	// EnterRvalue is called when entering the rvalue production.
-	EnterRvalue(c *RvalueContext)
-
-	// EnterTernary is called when entering the ternary production.
-	EnterTernary(c *TernaryContext)
-
-	// EnterComparison is called when entering the comparison production.
-	EnterComparison(c *ComparisonContext)
-
-	// EnterAssignment is called when entering the assignment production.
-	EnterAssignment(c *AssignmentContext)
-
-	// EnterExpression is called when entering the expression production.
-	EnterExpression(c *ExpressionContext)
-
-	// EnterFunctioninvocation is called when entering the functioninvocation production.
-	EnterFunctioninvocation(c *FunctioninvocationContext)
-
-	// EnterFunctionparameters is called when entering the functionparameters production.
-	EnterFunctionparameters(c *FunctionparametersContext)
-
-	// EnterAssign is called when entering the assign production.
-	EnterAssign(c *AssignContext)
-
-	// EnterIncdec is called when entering the incdec production.
-	EnterIncdec(c *IncdecContext)
-
-	// EnterUnary is called when entering the unary production.
-	EnterUnary(c *UnaryContext)
-
-	// EnterBinary is called when entering the binary production.
-	EnterBinary(c *BinaryContext)
-
-	// EnterLvalue is called when entering the lvalue production.
-	EnterLvalue(c *LvalueContext)
-
-	// EnterConstant is called when entering the constant production.
-	EnterConstant(c *ConstantContext)
-
-	// EnterName is called when entering the name production.
-	EnterName(c *NameContext)
+	// EnterAssign_op is called when entering the assign_op production.
+	EnterAssign_op(c *Assign_opContext)
 
 	// ExitProgram is called when exiting the program production.
 	ExitProgram(c *ProgramContext)
 
-	// ExitTopLevel is called when exiting the topLevel production.
-	ExitTopLevel(c *TopLevelContext)
-
-	// ExitDefinition is called when exiting the definition production.
-	ExitDefinition(c *DefinitionContext)
-
-	// ExitExtrndecl is called when exiting the extrndecl production.
-	ExitExtrndecl(c *ExtrndeclContext)
-
-	// ExitVariadicdecl is called when exiting the variadicdecl production.
-	ExitVariadicdecl(c *VariadicdeclContext)
+	// ExitExt_def is called when exiting the ext_def production.
+	ExitExt_def(c *Ext_defContext)
 
 	// ExitIval is called when exiting the ival production.
 	ExitIval(c *IvalContext)
 
+	// ExitIval_list is called when exiting the ival_list production.
+	ExitIval_list(c *Ival_listContext)
+
+	// ExitArg_list is called when exiting the arg_list production.
+	ExitArg_list(c *Arg_listContext)
+
+	// ExitName_list is called when exiting the name_list production.
+	ExitName_list(c *Name_listContext)
+
+	// ExitString_list is called when exiting the string_list production.
+	ExitString_list(c *String_listContext)
+
 	// ExitStatement is called when exiting the statement production.
 	ExitStatement(c *StatementContext)
 
-	// ExitNullstmt is called when exiting the nullstmt production.
-	ExitNullstmt(c *NullstmtContext)
+	// ExitCompound_stmt is called when exiting the compound_stmt production.
+	ExitCompound_stmt(c *Compound_stmtContext)
 
-	// ExitExpressionstmt is called when exiting the expressionstmt production.
-	ExitExpressionstmt(c *ExpressionstmtContext)
+	// ExitAuto_decl is called when exiting the auto_decl production.
+	ExitAuto_decl(c *Auto_declContext)
 
-	// ExitBlockstmt is called when exiting the blockstmt production.
-	ExitBlockstmt(c *BlockstmtContext)
+	// ExitAuto_def is called when exiting the auto_def production.
+	ExitAuto_def(c *Auto_defContext)
 
-	// ExitReturnstmt is called when exiting the returnstmt production.
-	ExitReturnstmt(c *ReturnstmtContext)
+	// ExitExtrn_decl is called when exiting the extrn_decl production.
+	ExitExtrn_decl(c *Extrn_declContext)
 
-	// ExitGotostmt is called when exiting the gotostmt production.
-	ExitGotostmt(c *GotostmtContext)
+	// ExitExpr is called when exiting the expr production.
+	ExitExpr(c *ExprContext)
 
-	// ExitSwitchstmt is called when exiting the switchstmt production.
-	ExitSwitchstmt(c *SwitchstmtContext)
+	// ExitExpr_list is called when exiting the expr_list production.
+	ExitExpr_list(c *Expr_listContext)
 
-	// ExitWhilestmt is called when exiting the whilestmt production.
-	ExitWhilestmt(c *WhilestmtContext)
-
-	// ExitIfstmt is called when exiting the ifstmt production.
-	ExitIfstmt(c *IfstmtContext)
-
-	// ExitCasestmt is called when exiting the casestmt production.
-	ExitCasestmt(c *CasestmtContext)
-
-	// ExitExternsmt is called when exiting the externsmt production.
-	ExitExternsmt(c *ExternsmtContext)
-
-	// ExitAutosmt is called when exiting the autosmt production.
-	ExitAutosmt(c *AutosmtContext)
-
-	// ExitAsmstmt is called when exiting the asmstmt production.
-	ExitAsmstmt(c *AsmstmtContext)
-
-	// ExitStringlist is called when exiting the stringlist production.
-	ExitStringlist(c *StringlistContext)
-
-	// ExitRvalue is called when exiting the rvalue production.
-	ExitRvalue(c *RvalueContext)
-
-	// ExitTernary is called when exiting the ternary production.
-	ExitTernary(c *TernaryContext)
-
-	// ExitComparison is called when exiting the comparison production.
-	ExitComparison(c *ComparisonContext)
-
-	// ExitAssignment is called when exiting the assignment production.
-	ExitAssignment(c *AssignmentContext)
-
-	// ExitExpression is called when exiting the expression production.
-	ExitExpression(c *ExpressionContext)
-
-	// ExitFunctioninvocation is called when exiting the functioninvocation production.
-	ExitFunctioninvocation(c *FunctioninvocationContext)
-
-	// ExitFunctionparameters is called when exiting the functionparameters production.
-	ExitFunctionparameters(c *FunctionparametersContext)
-
-	// ExitAssign is called when exiting the assign production.
-	ExitAssign(c *AssignContext)
-
-	// ExitIncdec is called when exiting the incdec production.
-	ExitIncdec(c *IncdecContext)
-
-	// ExitUnary is called when exiting the unary production.
-	ExitUnary(c *UnaryContext)
-
-	// ExitBinary is called when exiting the binary production.
-	ExitBinary(c *BinaryContext)
-
-	// ExitLvalue is called when exiting the lvalue production.
-	ExitLvalue(c *LvalueContext)
-
-	// ExitConstant is called when exiting the constant production.
-	ExitConstant(c *ConstantContext)
-
-	// ExitName is called when exiting the name production.
-	ExitName(c *NameContext)
+	// ExitAssign_op is called when exiting the assign_op production.
+	ExitAssign_op(c *Assign_opContext)
 }
