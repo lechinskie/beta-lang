@@ -14,13 +14,24 @@ type SemanticChecker struct {
 	errors      *ErrorList
 	source      string
 	inFuncScope bool
+	labels      map[string]bool
+	gotoStmts   []gotoInfo
+	inGoto      bool
+}
+
+type gotoInfo struct {
+	name string
+	line int
+	col  int
 }
 
 func NewSemanticChecker(symbols *SymbolTable, errors *ErrorList, source string) *SemanticChecker {
 	return &SemanticChecker{
-		symbols: symbols,
-		errors:  errors,
-		source:  source,
+		symbols:   symbols,
+		errors:    errors,
+		source:    source,
+		labels:    make(map[string]bool),
+		gotoStmts: make([]gotoInfo, 0),
 	}
 }
 
@@ -42,7 +53,6 @@ func (c *SemanticChecker) ExitProgram(ctx *parser.ProgramContext) {
 }
 
 func (c *SemanticChecker) EnterExt_def(ctx *parser.Ext_defContext) {
-	// Check if this is an extrn definition
 	if ctx.EXTRN() != nil {
 		nameList := ctx.Name_list()
 		if nameList != nil {
@@ -67,12 +77,10 @@ func (c *SemanticChecker) EnterExt_def(ctx *parser.Ext_defContext) {
 		return
 	}
 
-	// Check if this is a variadic definition
 	if ctx.VARIADIC() != nil {
 		return
 	}
 
-	// Check if this is a naked function definition with asm
 	if ctx.ASM() != nil && ctx.String_list() != nil {
 		idCtx := ctx.ID()
 		if idCtx == nil {
@@ -104,9 +112,7 @@ func (c *SemanticChecker) EnterExt_def(ctx *parser.Ext_defContext) {
 	line := idCtx.GetSymbol().GetLine()
 	col := idCtx.GetSymbol().GetColumn() + 1
 
-	// Check if this is a function definition: ID '(' arg_list? ')' statement
 	if strings.Contains(ctx.GetText(), "(") && strings.Contains(ctx.GetText(), ")") {
-		// Function definition
 		sym := &Symbol{
 			Name:       name,
 			Type:       "func",
@@ -119,11 +125,11 @@ func (c *SemanticChecker) EnterExt_def(ctx *parser.Ext_defContext) {
 			c.addError(line, col, fmt.Sprintf("'%s' already declared", name))
 		}
 
-		// Enter function scope
 		c.symbols.EnterScope()
 		c.inFuncScope = true
+		c.labels = make(map[string]bool)
+		c.gotoStmts = make([]gotoInfo, 0)
 
-		// Register parameters
 		argList := ctx.Arg_list()
 		if argList != nil {
 			for i, paramID := range argList.AllID() {
@@ -147,7 +153,6 @@ func (c *SemanticChecker) EnterExt_def(ctx *parser.Ext_defContext) {
 		return
 	}
 
-	// Check if this is an array declaration: ID '[' expr? ']' ival_list? ';'
 	if strings.Contains(ctx.GetText(), "[") {
 		sym := &Symbol{
 			Name:       name,
@@ -163,7 +168,6 @@ func (c *SemanticChecker) EnterExt_def(ctx *parser.Ext_defContext) {
 		return
 	}
 
-	// Simple global declaration: ID ';'
 	sym := &Symbol{
 		Name:       name,
 		Type:       "word",
@@ -179,6 +183,11 @@ func (c *SemanticChecker) EnterExt_def(ctx *parser.Ext_defContext) {
 
 func (c *SemanticChecker) ExitExt_def(ctx *parser.Ext_defContext) {
 	if c.inFuncScope && !strings.Contains(ctx.GetText(), "extrn") && !strings.Contains(ctx.GetText(), "__variadic__") {
+		for _, g := range c.gotoStmts {
+			if !c.labels[g.name] {
+				c.addError(g.line, g.col, fmt.Sprintf("label '%s' undeclared", g.name))
+			}
+		}
 		c.symbols.ExitScope()
 		c.inFuncScope = false
 	}
@@ -208,6 +217,50 @@ func (c *SemanticChecker) EnterAuto_decl(ctx *parser.Auto_declContext) {
 	}
 }
 
+func (c *SemanticChecker) EnterStatement(ctx *parser.StatementContext) {
+	childCount := ctx.GetChildCount()
+	if childCount >= 2 {
+		first := ctx.GetChild(0)
+		second := ctx.GetChild(1)
+
+		if t, ok := first.(antlr.TerminalNode); ok && t.GetSymbol().GetTokenType() == 61 {
+			if s, ok := second.(antlr.TerminalNode); ok && s.GetSymbol().GetText() == ":" {
+				labelName := t.GetSymbol().GetText()
+				line := t.GetSymbol().GetLine()
+				col := t.GetSymbol().GetColumn() + 1
+
+				if c.labels[labelName] {
+					c.addError(line, col, fmt.Sprintf("label '%s' already declared", labelName))
+					return
+				}
+				c.labels[labelName] = true
+				return
+			}
+		}
+	}
+
+	if ctx.GOTO() != nil {
+		c.inGoto = true
+		expr := ctx.Expr()
+		if expr != nil {
+			idTok := expr.ID()
+			if idTok != nil {
+				c.gotoStmts = append(c.gotoStmts, gotoInfo{
+					name: idTok.GetText(),
+					line: idTok.GetSymbol().GetLine(),
+					col:  idTok.GetSymbol().GetColumn() + 1,
+				})
+			}
+		}
+	}
+}
+
+func (c *SemanticChecker) ExitStatement(ctx *parser.StatementContext) {
+	if ctx.GOTO() != nil {
+		c.inGoto = false
+	}
+}
+
 func (c *SemanticChecker) EnterCompound_stmt(ctx *parser.Compound_stmtContext) {
 	c.symbols.EnterScope()
 }
@@ -223,9 +276,16 @@ func (c *SemanticChecker) EnterExpr(ctx *parser.ExprContext) {
 		line := idCtx.GetSymbol().GetLine()
 		col := idCtx.GetSymbol().GetColumn() + 1
 
-		// Skip if this is a function call being declared (handled elsewhere)
-		// Check if variable exists in symbol table
-		if c.symbols.Lookup(name) == nil {
+		if c.inGoto {
+			return
+		}
+
+		if c.labels[name] {
+			return
+		}
+
+		sym := c.symbols.Lookup(name)
+		if sym == nil {
 			c.addError(line, col, fmt.Sprintf("'%s' undeclared", name))
 		}
 	}

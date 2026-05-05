@@ -9,8 +9,6 @@ import (
 	"github.com/eramoss/b/internal/parser"
 )
 
-// --- Symbol Table ---
-
 type SymbolKind int
 
 const (
@@ -19,6 +17,7 @@ const (
 	KindFunc
 	KindExtrn
 	KindArray
+	KindLabel
 )
 
 func (k SymbolKind) String() string {
@@ -33,6 +32,8 @@ func (k SymbolKind) String() string {
 		return "extrn"
 	case KindArray:
 		return "array"
+	case KindLabel:
+		return "label"
 	default:
 		return "unknown"
 	}
@@ -94,8 +95,6 @@ func (st *SymbolTable) Lookup(name string) *Symbol {
 func (st *SymbolTable) CurrentDepth() int {
 	return st.depth
 }
-
-// --- Main ---
 
 func Main() {
 	if len(os.Args) < 2 {
