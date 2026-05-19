@@ -17,6 +17,7 @@ type SemanticChecker struct {
 	labels      map[string]bool
 	gotoStmts   []gotoInfo
 	inGoto      bool
+	exprTypes   map[antlr.ParserRuleContext]string // guarda o tipo de cada expressao
 }
 
 type gotoInfo struct {
@@ -32,6 +33,7 @@ func NewSemanticChecker(symbols *SymbolTable, errors *ErrorList, source string) 
 		source:    source,
 		labels:    make(map[string]bool),
 		gotoStmts: make([]gotoInfo, 0),
+		exprTypes: make(map[antlr.ParserRuleContext]string),
 	}
 }
 
@@ -288,6 +290,99 @@ func (c *SemanticChecker) EnterExpr(ctx *parser.ExprContext) {
 		if sym == nil {
 			c.addError(line, col, fmt.Sprintf("'%s' undeclared", name))
 		}
+	}
+}
+
+func (c *SemanticChecker) getType(ctx parser.IExprContext) string {
+	if ctx == nil {
+		return ""
+	}
+	exprCtx, ok := ctx.(*parser.ExprContext)
+	if !ok {
+		return ""
+	}
+	t, ok := c.exprTypes[exprCtx]
+	if ok {
+		return t
+	}
+	return ""
+}
+
+func (c *SemanticChecker) ExitExpr(ctx *parser.ExprContext) {
+	if ctx.STRING() != nil && len(ctx.AllExpr()) == 0 {
+		c.exprTypes[ctx] = "string"
+		return
+	}
+
+	if ctx.DECIMAL() != nil {
+		c.exprTypes[ctx] = "int"
+		return
+	}
+	if ctx.OCTAL() != nil {
+		c.exprTypes[ctx] = "int"
+		return
+	}
+	if ctx.CHAR() != nil {
+		c.exprTypes[ctx] = "int"
+		return
+	}
+
+	if ctx.ID() != nil && len(ctx.AllExpr()) == 0 {
+		name := ctx.ID().GetText()
+		sym := c.symbols.Lookup(name)
+		if sym != nil {
+			if sym.Type == "string" {
+				c.exprTypes[ctx] = "string"
+			} else {
+				c.exprTypes[ctx] = "int"
+			}
+		}
+		return
+	}
+
+	if len(ctx.AllExpr()) == 2 {
+		left := ctx.AllExpr()[0]
+		right := ctx.AllExpr()[1]
+		leftType := c.getType(left)
+		rightType := c.getType(right)
+
+		if ctx.Assign_op() != nil {
+			c.exprTypes[ctx] = rightType
+			e, ok := left.(*parser.ExprContext)
+			if ok && e.ID() != nil {
+				sym := c.symbols.Lookup(e.ID().GetText())
+				if sym != nil {
+					sym.Type = rightType
+				}
+			}
+			return
+		}
+
+		text := ctx.GetText()
+		isArith := strings.Contains(text, "+") || strings.Contains(text, "-") || strings.Contains(text, "*") || strings.Contains(text, "/") || strings.Contains(text, "%") || strings.Contains(text, "<<") || strings.Contains(text, ">>") || strings.Contains(text, "&") || strings.Contains(text, "|") || strings.Contains(text, "^")
+
+		if isArith {
+			if leftType == "string" && rightType == "int" {
+				line := ctx.GetStart().GetLine()
+				col := ctx.GetStart().GetColumn() + 1
+				c.addError(line, col, fmt.Sprintf("incompatible types: cannot mix '%s' with '%s' in arithmetic", leftType, rightType))
+			}
+			if leftType == "int" && rightType == "string" {
+				line := ctx.GetStart().GetLine()
+				col := ctx.GetStart().GetColumn() + 1
+				c.addError(line, col, fmt.Sprintf("incompatible types: cannot mix '%s' with '%s' in arithmetic", leftType, rightType))
+			}
+			if leftType == "string" && rightType == "string" {
+				line := ctx.GetStart().GetLine()
+				col := ctx.GetStart().GetColumn() + 1
+				c.addError(line, col, "incompatible types: cannot do arithmetic with strings")
+			}
+			c.exprTypes[ctx] = "int"
+			return
+		}
+
+		c.exprTypes[ctx] = "int"
+		return
 	}
 }
 

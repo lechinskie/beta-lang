@@ -44,7 +44,6 @@ label:
   b = w[a];
   a = 2;
   w[7] = a + b;
-
   /* Testing Operators */
   c = (a << 2) | (b >> 1);
   c = a % 3;
