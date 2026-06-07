@@ -1,7 +1,7 @@
 package main
 
-import "github.com/eramoss/b/internal/analysis"
+import "github.com/eramoss/b/internal/compile"
 
 func main() {
-	analysis.Main()
+	compile.Main()
 }

@@ -1,4 +1,4 @@
-package analysis
+package sema
 
 import (
 	"fmt"
@@ -17,7 +17,7 @@ type SemanticChecker struct {
 	labels      map[string]bool
 	gotoStmts   []gotoInfo
 	inGoto      bool
-	exprTypes   map[antlr.ParserRuleContext]string // guarda o tipo de cada expressao
+	exprTypes   map[antlr.ParserRuleContext]string
 }
 
 type gotoInfo struct {
@@ -44,14 +44,6 @@ func (c *SemanticChecker) addError(line, col int, msg string) {
 		Column: col,
 		Text:   msg,
 	})
-}
-
-func (c *SemanticChecker) EnterProgram(ctx *parser.ProgramContext) {
-	c.symbols.EnterScope()
-}
-
-func (c *SemanticChecker) ExitProgram(ctx *parser.ProgramContext) {
-	c.symbols.ExitScope()
 }
 
 func (c *SemanticChecker) EnterExt_def(ctx *parser.Ext_defContext) {
@@ -127,7 +119,6 @@ func (c *SemanticChecker) EnterExt_def(ctx *parser.Ext_defContext) {
 			c.addError(line, col, fmt.Sprintf("'%s' already declared", name))
 		}
 
-		c.symbols.EnterScope()
 		c.inFuncScope = true
 		c.labels = make(map[string]bool)
 		c.gotoStmts = make([]gotoInfo, 0)
@@ -190,7 +181,6 @@ func (c *SemanticChecker) ExitExt_def(ctx *parser.Ext_defContext) {
 				c.addError(g.line, g.col, fmt.Sprintf("label '%s' undeclared", g.name))
 			}
 		}
-		c.symbols.ExitScope()
 		c.inFuncScope = false
 	}
 }
@@ -386,8 +376,9 @@ func (c *SemanticChecker) ExitExpr(ctx *parser.ExprContext) {
 	}
 }
 
-func CheckSemantic(source string, errors *ErrorList, tree antlr.ParseTree) {
+func CheckSemantic(source string, errors *ErrorList, tree antlr.ParseTree) *SymbolTable {
 	symbols := NewSymbolTable()
 	checker := NewSemanticChecker(symbols, errors, source)
 	antlr.ParseTreeWalkerDefault.Walk(checker, tree)
+	return symbols
 }

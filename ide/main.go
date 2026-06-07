@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/atotto/clipboard"
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -17,6 +18,14 @@ import (
 const (
 	panelEditor = iota
 	panelOutput
+)
+
+// ── Compile modes ─────────────────────────────────────────────────────────────
+
+const (
+	compileNormal = iota
+	compileSymTab
+	compileAssembly
 )
 
 // ── Palette ───────────────────────────────────────────────────────────────────
@@ -124,8 +133,9 @@ var (
 // ── Tea messages ──────────────────────────────────────────────────────────────
 
 type compileResultMsg struct {
-	success bool
-	output  string
+	success     bool
+	output      string
+	compileMode int
 }
 
 // ── Model ─────────────────────────────────────────────────────────────────────
@@ -141,6 +151,7 @@ type model struct {
 	height       int
 	filename     string
 	outputScroll int
+	compileMode  int
 }
 
 const (
@@ -212,17 +223,17 @@ func (m model) Init() tea.Cmd {
 
 // ── Compile command ───────────────────────────────────────────────────────────
 
-func runCompile(code string) tea.Cmd {
+func runCompile(code string, mode int, flags ...string) tea.Cmd {
 	return func() tea.Msg {
 		tmpFile, err := os.CreateTemp("", "beta-*.b")
 		if err != nil {
-			return compileResultMsg{false, "failed to create temp file: " + err.Error()}
+			return compileResultMsg{false, "failed to create temp file: " + err.Error(), mode}
 		}
 		defer os.Remove(tmpFile.Name())
 
 		if _, err := tmpFile.WriteString(code); err != nil {
 			tmpFile.Close()
-			return compileResultMsg{false, "failed to write source: " + err.Error()}
+			return compileResultMsg{false, "failed to write source: " + err.Error(), mode}
 		}
 		tmpFile.Close()
 
@@ -237,7 +248,9 @@ func runCompile(code string) tea.Cmd {
 			}
 		}
 
-		cmd := exec.Command(compiler, tmpFile.Name())
+		args := append([]string{}, flags...)
+		args = append(args, tmpFile.Name())
+		cmd := exec.Command(compiler, args...)
 		out, err := cmd.CombinedOutput()
 		output := strings.TrimSpace(string(out))
 
@@ -245,12 +258,12 @@ func runCompile(code string) tea.Cmd {
 			if output == "" {
 				output = err.Error()
 			}
-			return compileResultMsg{false, output}
+			return compileResultMsg{false, output, mode}
 		}
 		if output == "" {
 			output = "Compilation successful — no output."
 		}
-		return compileResultMsg{true, output}
+		return compileResultMsg{true, output, mode}
 	}
 }
 
@@ -276,14 +289,28 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if !m.compiling {
 				m.compiling = true
 				m.compiled = false
-				return m, runCompile(m.editor.Value())
+				m.compileMode = compileNormal
+				return m, runCompile(m.editor.Value(), compileNormal)
+			}
+
+		case "ctrl+t":
+			if !m.compiling {
+				m.compiling = true
+				m.compiled = false
+				m.compileMode = compileSymTab
+				return m, runCompile(m.editor.Value(), compileSymTab, "--exp-st")
 			}
 
 		case "ctrl+s":
 			if m.filename != "" {
 				_ = os.WriteFile(m.filename, []byte(m.editor.Value()), 0644)
 			}
-			return m, nil
+			if !m.compiling {
+				m.compiling = true
+				m.compiled = false
+				m.compileMode = compileAssembly
+				return m, runCompile(m.editor.Value(), compileAssembly, "--S")
+			}
 
 		case "tab":
 			if m.focus == panelEditor {
@@ -314,6 +341,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.success = msg.success
 		m.output = msg.output
 		m.outputScroll = 0
+		if msg.success && msg.compileMode == compileAssembly {
+			_ = clipboard.WriteAll(msg.output)
+		}
 		if !msg.success {
 			m.focus = panelOutput
 			m.editor.Blur()
@@ -397,9 +427,24 @@ func (m model) viewOutputPanel() string {
 	var tabLabel string
 	switch {
 	case m.compiling:
-		tabLabel = styleCompiling.Render(" ⟳  Compiling… ")
+		switch m.compileMode {
+		case compileSymTab:
+			tabLabel = styleCompiling.Render(" ⟳  Symbol Table… ")
+		case compileAssembly:
+			tabLabel = styleCompiling.Render(" ⟳  Assembly… ")
+		default:
+			tabLabel = styleCompiling.Render(" ⟳  Compiling… ")
+		}
 	case !m.compiled:
 		tabLabel = styleTabIdle.Render(" OUTPUT ")
+	case m.compileMode == compileSymTab && m.success:
+		tabLabel = styleTabOK.Render(" ◇  SYMTAB ")
+	case m.compileMode == compileSymTab && !m.success:
+		tabLabel = styleTabErr.Render(" ✗  SYMTAB ERR ")
+	case m.compileMode == compileAssembly && m.success:
+		tabLabel = styleTabOK.Render(" ◆  ASSEMBLY ")
+	case m.compileMode == compileAssembly && !m.success:
+		tabLabel = styleTabErr.Render(" ✗  ASM ERR ")
 	case m.success:
 		tabLabel = styleTabOK.Render(" ✓  OK ")
 	default:
@@ -417,8 +462,6 @@ func (m model) viewOutputPanel() string {
 		body = styleCompiling.Render("  Compiling, please wait…")
 	case !m.compiled:
 		body = styleOutputDim.Render("  Press Ctrl+B to compile.")
-	case m.success:
-		body = styleOutputOK.Render("  " + m.output)
 	default:
 		lines := strings.Split(m.output, "\n")
 		maxScroll := clampMin(len(lines)-1, 0)
@@ -430,8 +473,12 @@ func (m model) viewOutputPanel() string {
 			visible = visible[:outputPanelH]
 		}
 		var sb strings.Builder
+		lineStyle := styleOutputOK
+		if !m.success {
+			lineStyle = styleOutputErr
+		}
 		for _, l := range visible {
-			sb.WriteString(styleOutputErr.Render("  "+l) + "\n")
+			sb.WriteString(lineStyle.Render("  "+l) + "\n")
 		}
 		body = strings.TrimRight(sb.String(), "\n")
 	}
@@ -460,8 +507,9 @@ func (m model) viewOutputPanel() string {
 func (m model) viewHintsBar() string {
 	hints := []struct{ key, label string }{
 		{"^B", "compile"},
+		{"^T", "sym table"},
+		{"^S", "save+asm"},
 		{"Tab", "switch panel"},
-		{"^S", "save"},
 		{"↑↓", "scroll output"},
 		{"^Q", "quit"},
 	}
