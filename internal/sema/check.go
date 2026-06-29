@@ -119,6 +119,8 @@ func (c *SemanticChecker) EnterExt_def(ctx *parser.Ext_defContext) {
 			c.addError(line, col, fmt.Sprintf("'%s' already declared", name))
 		}
 
+		c.symbols.EnterScope()
+
 		c.inFuncScope = true
 		c.labels = make(map[string]bool)
 		c.gotoStmts = make([]gotoInfo, 0)
@@ -176,6 +178,7 @@ func (c *SemanticChecker) EnterExt_def(ctx *parser.Ext_defContext) {
 
 func (c *SemanticChecker) ExitExt_def(ctx *parser.Ext_defContext) {
 	if c.inFuncScope && !strings.Contains(ctx.GetText(), "extrn") && !strings.Contains(ctx.GetText(), "__variadic__") {
+		c.symbols.ExitScope()
 		for _, g := range c.gotoStmts {
 			if !c.labels[g.name] {
 				c.addError(g.line, g.col, fmt.Sprintf("label '%s' undeclared", g.name))

@@ -1,6 +1,7 @@
 package codegen
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -26,12 +27,15 @@ func (g *Generator) evalExpr(ctx parser.IExprContext) {
 	case ec.ID() != nil && n == 0:
 		g.emitLoadVar(ec.ID().GetText())
 
-	// extrn call
 	case ec.Expr_list() != nil && ec.Expr(0).ID() != nil:
 		name := ec.Expr(0).ID().GetText()
 		sym := g.st.Lookup(name)
 		if sym != nil && sym.Kind == sema.KindExtrn {
 			g.handleExtrnCall(ec)
+			return
+		}
+		if sym != nil && sym.Kind == sema.KindFunc {
+			g.handleFuncCall(name, ec)
 			return
 		}
 		g.evalExpr(ec.Expr(0))
@@ -100,9 +104,73 @@ func (g *Generator) handleExtrnCall(ec *parser.ExprContext) {
 	}
 }
 
+func (g *Generator) handleFuncCall(name string, ec *parser.ExprContext) {
+	args := []parser.IExprContext{}
+	if ec.Expr_list() != nil {
+		args = ec.Expr_list().AllExpr()
+	}
+
+	for _, arg := range args {
+		g.evalExpr(arg)
+		g.pushA0()
+	}
+
+	n := len(args)
+	for i := n - 1; i >= 0; i-- {
+		g.popT0()
+		reg := fmt.Sprintf("a%d", i)
+		g.emit("addi %s, t0, 0", reg)
+	}
+
+	g.emit("jal ra, %s", mangle(name))
+}
+
 func (g *Generator) handleAssign(ec *parser.ExprContext) {
 	lhs := ec.Expr(0)
 	rhs := ec.Expr(1)
+
+	isCompound := false
+	op := ""
+	if ec.Assign_op() != nil {
+		op = ec.Assign_op().GetText()
+		isCompound = op != "="
+	}
+
+	if isCompound {
+		if strings.Contains(lhs.GetText(), "[") {
+			g.evalArrayAddr(lhs)
+			g.emit("lw a0, 0(t0)")
+			g.pushA0()
+			g.evalExpr(rhs)
+			g.popT0()
+			g.applyCompoundOp(op)
+			g.popT0()
+			g.emit("sw a0, 0(t0)")
+			return
+		}
+
+		if strings.HasPrefix(lhs.GetText(), "*") {
+			g.evalExpr(lhs.Expr(0))
+			g.emit("lw a0, 0(a0)")
+			g.pushA0()
+			g.evalExpr(rhs)
+			g.popT0()
+			g.applyCompoundOp(op)
+			g.popT0()
+			g.emit("sw a0, 0(t0)")
+			return
+		}
+
+		if lhs.ID() != nil {
+			g.emitLoadVar(lhs.ID().GetText())
+			g.pushA0()
+			g.evalExpr(rhs)
+			g.popT0()
+			g.applyCompoundOp(op)
+			g.emitStoreVar(lhs.ID().GetText())
+			return
+		}
+	}
 
 	if strings.Contains(lhs.GetText(), "[") {
 		g.evalArrayAddr(lhs)
@@ -125,6 +193,31 @@ func (g *Generator) handleAssign(ec *parser.ExprContext) {
 	g.evalExpr(rhs)
 	if lhs.ID() != nil {
 		g.emitStoreVar(lhs.ID().GetText())
+	}
+}
+
+func (g *Generator) applyCompoundOp(op string) {
+	switch op {
+	case "=+":
+		g.emit("add a0, t0, a0")
+	case "=-":
+		g.emit("sub a0, t0, a0")
+	case "=*":
+		g.emit("mul a0, t0, a0")
+	case "=/":
+		g.emit("div a0, t0, a0")
+	case "=%":
+		g.emit("rem a0, t0, a0")
+	case "=&":
+		g.emit("and a0, t0, a0")
+	case "=|":
+		g.emit("or a0, t0, a0")
+	case "=^":
+		g.emit("xor a0, t0, a0")
+	case "=<<":
+		g.emit("sll a0, t0, a0")
+	case "=>>":
+		g.emit("srl a0, t0, a0")
 	}
 }
 
